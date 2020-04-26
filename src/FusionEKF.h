@@ -44,6 +44,15 @@ class FusionEKF {
   Eigen::MatrixXd R_radar_;
   Eigen::MatrixXd H_laser_;
   Eigen::MatrixXd Hj_;
+
+  // noise parameters
+  float noise_ax;
+  float noise_ay;
+  
+  /**
+   * Convert radar from polar to cartesian coordinates. 
+   */
+  Eigen::VectorXd PolarToCartesian(const Eigen::VectorXd &measurements);
 };
 
 #endif // FusionEKF_H_

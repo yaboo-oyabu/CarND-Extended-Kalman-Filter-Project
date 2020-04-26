@@ -32,19 +32,22 @@ class KalmanFilter {
    * using the process model
    * @param delta_T Time between k and k+1 in s
    */
-  void Predict();
+  void Predict(float delta_T, float noise_ax, float noise_ay);
 
   /**
    * Updates the state by using standard Kalman Filter equations
    * @param z The measurement at k+1
    */
-  void Update(const Eigen::VectorXd &z);
-
+  //void Update(const Eigen::VectorXd &z);
+  void Update(const Eigen::VectorXd &z, const Eigen::MatrixXd &R,
+              const Eigen::MatrixXd &H);
   /**
    * Updates the state by using Extended Kalman Filter equations
    * @param z The measurement at k+1
    */
-  void UpdateEKF(const Eigen::VectorXd &z);
+  void UpdateEKF(const Eigen::VectorXd &z, const Eigen::MatrixXd &R,
+                 const Eigen::MatrixXd &H);
+  Eigen::VectorXd CartesianToPolar(const Eigen::VectorXd &x);
 
   // state vector
   Eigen::VectorXd x_;
