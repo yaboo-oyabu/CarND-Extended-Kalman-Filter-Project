@@ -62,8 +62,8 @@ FusionEKF::FusionEKF() {
              0, 0, 0, 0;
 
   // set the acceleration noise components
-  noise_ax = 5;
-  noise_ay = 5;
+  noise_ax = 9;
+  noise_ay = 9;
 }
 
 /**
@@ -77,13 +77,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
   if (!is_initialized_) {
     /**
-     * TODO: Initialize the state ekf_.x_ with the first measurement.
-     * TODO: Create the covariance matrix.
-     * You'll need to convert radar from polar to cartesian coordinates.
+     * Initialize the state ekf_.x_ with the first measurement, and
+     * create the covariance matrix.
      */
-
-    // first measurement
-    cout << "EKF: " << endl;
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       // Convert radar from polar to cartesian coordinates and
@@ -119,10 +115,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // Radar updates
     Hj_ = tools.CalculateJacobian(ekf_.x_);
-    ekf_.UpdateEKF(measurement_pack.raw_measurements_, R_radar_, Hj_);
+    ekf_.UpdateRadar(measurement_pack.raw_measurements_, R_radar_, Hj_);
   } else {
-    // TODO: Laser updates
-    ekf_.Update(measurement_pack.raw_measurements_, R_laser_, H_laser_);
+    // Laser updates
+    ekf_.UpdateLaser(measurement_pack.raw_measurements_, R_laser_, H_laser_);
   }
 
   // print the output

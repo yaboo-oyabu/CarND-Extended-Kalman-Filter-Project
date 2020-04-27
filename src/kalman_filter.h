@@ -38,16 +38,10 @@ class KalmanFilter {
    * Updates the state by using standard Kalman Filter equations
    * @param z The measurement at k+1
    */
-  //void Update(const Eigen::VectorXd &z);
-  void Update(const Eigen::VectorXd &z, const Eigen::MatrixXd &R,
-              const Eigen::MatrixXd &H);
-  /**
-   * Updates the state by using Extended Kalman Filter equations
-   * @param z The measurement at k+1
-   */
-  void UpdateEKF(const Eigen::VectorXd &z, const Eigen::MatrixXd &R,
-                 const Eigen::MatrixXd &H);
-  Eigen::VectorXd CartesianToPolar(const Eigen::VectorXd &x);
+  void UpdateLaser(const Eigen::VectorXd &z, const Eigen::MatrixXd &R,
+                   const Eigen::MatrixXd &H);
+  void UpdateRadar(const Eigen::VectorXd &z, const Eigen::MatrixXd &R,
+                   const Eigen::MatrixXd &H);
 
   // state vector
   Eigen::VectorXd x_;
@@ -66,6 +60,12 @@ class KalmanFilter {
 
   // measurement covariance matrix
   Eigen::MatrixXd R_;
+
+ private:
+  void Update(const Eigen::VectorXd &y, const Eigen::MatrixXd &H,
+              const Eigen::MatrixXd &K);
+  float NormalizePhi(float phi);
+  Eigen::VectorXd CartesianToPolar(const Eigen::VectorXd &x);
 };
 
 #endif // KALMAN_FILTER_H_

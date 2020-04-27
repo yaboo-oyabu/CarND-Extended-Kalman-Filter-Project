@@ -1,5 +1,6 @@
 #include "kalman_filter.h"
 #include <iostream>
+#include <cmath>
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
@@ -43,15 +44,33 @@ void KalmanFilter::Predict(float delta_T, float noise_ax, float noise_ay) {
   P_ = F_ * P_ * F_.transpose() + Q_;
 }
 
-void KalmanFilter::Update(const VectorXd &z,
-                          const MatrixXd &R,
-                          const MatrixXd &H) {
+
+void KalmanFilter::UpdateLaser(const VectorXd &z,
+                               const MatrixXd &R,
+                               const MatrixXd &H) {
   // update the state by using Kalman Filter equations
   VectorXd z_pred = H * x_;
   VectorXd y = z - z_pred;
+  Update(y, H, R);
+}
+
+void KalmanFilter::UpdateRadar(const VectorXd &z,
+                               const MatrixXd &R,
+                               const MatrixXd &H) {
+  // update the state by using Extended Kalman Filter equations
+  VectorXd z_pred = CartesianToPolar(x_);
+  VectorXd y = z - z_pred;
+  y[1] = NormalizePhi(y[1]);
+
+  Update(y, H, R);
+}
+
+void KalmanFilter::Update(const VectorXd &y,
+                          const MatrixXd &H,
+                          const MatrixXd &R) {
   MatrixXd S = H * P_ * H.transpose() + R;
   MatrixXd K = P_ * H.transpose() * S.inverse();
-
+  
   //new estimate
   x_ = x_ + (K * y);
   long x_size = x_.size();
@@ -59,21 +78,17 @@ void KalmanFilter::Update(const VectorXd &z,
   P_ = (I - K * H) * P_;
 }
 
-void KalmanFilter::UpdateEKF(const VectorXd &z,
-                             const MatrixXd &R,
-                             const MatrixXd &H) {
+float KalmanFilter::NormalizePhi(float phi){
+  // Normalize phi from -2pi to 2pi.
+  float normalized_phi = phi;
+  float pi2 = 2 * M_PI;
 
-  // update the state by using Extended Kalman Filter equations
-  VectorXd z_pred = CartesianToPolar(x_);
-  VectorXd y = z - z_pred;
-  MatrixXd S = H * P_ * H.transpose() + R;
-  MatrixXd K = P_ * H.transpose() * S.inverse();
-
-  //new estimate
-  x_ = x_ + (K * y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H) * P_;
+  if (phi > pi2) {
+    normalized_phi = phi - pi2;
+  } else if (phi < -pi2) {
+    normalized_phi = phi + pi2;
+  } 
+  return normalized_phi;
 }
 
 VectorXd KalmanFilter::CartesianToPolar(const VectorXd &x) {
@@ -82,6 +97,7 @@ VectorXd KalmanFilter::CartesianToPolar(const VectorXd &x) {
   float py = x[1];
   float vx = x[2];
   float vy = x[3];
+
   z_prev[0] = std::sqrt(std::pow(px, 2.0) + std::pow(py, 2.0));
   z_prev[1] = atan2(py, px);
   z_prev[2] = (px*vx + py*vy)/z_prev[0];
